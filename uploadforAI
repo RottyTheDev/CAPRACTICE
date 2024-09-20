@@ -1,0 +1,799 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using System.Diagnostics;
+using System.Threading;
+
+namespace ActualControlledAssessmentWork050924
+{
+    internal class Program
+    {
+        //reminder order of info in students.csv: fname,sname,year,gender,atmp1laps,atmpt2laps,avglaps,reationtestscore,quizscore,
+        static string pathteach = "teachers.csv";
+        static string[] teachersusers = new string[File.ReadAllLines(pathteach).Length];
+        static int numberOfBitsOfInfoTeachers = 4;
+        static int noteachers = File.ReadAllLines(pathteach).Length;
+        static string[,] teachers = new string[noteachers, numberOfBitsOfInfoTeachers];
+        static string pathstudents = "students.csv";
+        static int noStudents = File.ReadAllLines(pathstudents).Length;
+        static string[] studentsusers = new string[File.ReadAllLines(pathstudents).Length];
+        static int numberOfBitsOfInfoStudents = 9;
+        static string[,] students = new string[noStudents, numberOfBitsOfInfoStudents];
+
+        public static void Main(string[] args)
+        {
+            readinteachers();
+            readinstudents();
+            login();
+        }
+        static void readinstudents()
+        {
+            try
+            {
+                studentsusers = File.ReadAllLines(pathstudents);
+            }
+            catch (FileNotFoundException fnfex)
+            {
+                Console.WriteLine("File not found. Type any key to continue" + fnfex.ToString());
+            }
+            string[] tempstudent = new string[numberOfBitsOfInfoStudents];
+            for (int i = 0; i < noStudents; i++)
+            {
+                tempstudent = studentsusers[i].Split(',');
+                for (int j = 0; j < numberOfBitsOfInfoStudents; j++)
+                {
+                    students[i, j] = tempstudent[j];
+                }
+            }
+        }
+        static void readinteachers()
+        {
+            try
+            {
+                teachersusers = File.ReadAllLines(pathteach);
+            }
+            catch (FileNotFoundException fnfex)
+            {
+                Console.WriteLine("File not found. Type any key to continue" + fnfex.ToString());
+            }
+            string[] tempteacher = new string[numberOfBitsOfInfoTeachers];
+            for (int i = 0; i < noteachers; i++)
+            {
+                tempteacher = teachersusers[i].Split(',');
+                for (int j = 0; j < numberOfBitsOfInfoTeachers; j++)
+                {
+                    teachers[i, j] = tempteacher[j];
+                }
+            }
+        }
+        static void login()
+        {
+            banner("Login");
+            Console.WriteLine("Please enter your username");
+            string username = Console.ReadLine();
+            Console.WriteLine("Please enter you password");
+            string password = Console.ReadLine();
+            for (int i = 0; i < teachersusers.GetLength(0); i++)
+            {
+                if (teachers[i, 0] == username)
+                    if (teachers[i, 1] == password)
+                    {
+                        Console.WriteLine("Hello {0} {1}, you have successfully logged in! Press any key to continue", teachers[i, 2], teachers[i, 3]);
+                        Console.ReadKey();
+                        mainMenu();
+                    }
+            }
+            Console.WriteLine("You have failed the login process. Press any key to continue.");
+            Console.ReadKey();
+            Console.Clear();
+            login();
+        }
+        static void mainMenu()
+        {
+            banner("Main Menu");
+            Console.WriteLine("Welcome to the main menu");
+            Console.WriteLine("1. User Management");
+            Console.WriteLine("2. Quiz");
+            Console.WriteLine("3. Exit Application");
+            Console.WriteLine("4. Pupil List");
+            Console.WriteLine("5. Pupil Swimming Groups");
+            Console.WriteLine("6. Average Lengths Swam By Pupil");
+            Console.WriteLine("7. Reaction Test");
+            Console.WriteLine("8. Leaderboards");
+            Console.WriteLine("Press the number associated with your option");
+            int choice = Convert.ToInt16(Console.ReadLine());
+            if (choice == 1)
+            {
+                userManagement();
+            }
+            else if (choice == 2)
+            {
+                quiz();
+            }
+            else if (choice == 3)
+            {
+                exitApplication();
+            }
+            else if (choice == 4)
+            {
+                pupilList();
+            }
+            else if (choice == 5)
+            {
+                swimmingGroups();
+            }
+            else if (choice == 6)
+            {
+                averageLengths();
+            }
+            else if (choice == 7)
+            {
+                reactionTest();
+            }
+            else if (choice == 8)
+            {
+                leaderBoards();
+            }
+            else
+            {
+                Console.WriteLine("You have entered an invalid value. Press any key to continue");
+                Console.ReadKey();
+                Console.Clear();
+                mainMenu();
+            }
+            Console.ReadKey();
+        }
+        static void leaderBoards()
+        {
+            banner("Leaderboards");
+            Console.WriteLine("1. Reaction Test");
+            Console.WriteLine("2. Quiz");
+            Console.WriteLine("3. Average Laps");
+            Console.WriteLine("Please enter what you would like to see the leaderboard for.");
+            string leaderBoard = Console.ReadLine();
+            if(leaderBoard == "1")
+            {
+                reactionTestLeaderboard();
+            }
+            else if(leaderBoard == "2")
+            {
+                quizScoreLeaderboard();
+            }
+            else if(leaderBoard == "3")
+            {
+                averageLapsLeaderboard();
+            }
+            else
+            {
+                Console.WriteLine("You have eneted an invalid option, press any key to return to the main menu");
+                Console.ReadKey();
+                mainMenu();
+            }
+
+        }
+        static void reactionTestLeaderboard()
+        {
+            banner("Reaction Test Leaderboard");
+
+            for (int i = 0; i < students.GetLength(0) - 1; i++)
+            {
+                for (int j = 0; j < students.GetLength(0) - i - 1; j++)
+                {
+                    if (double.TryParse(students[j, 7], out double reactionTime1) && double.TryParse(students[j + 1, 7], out double reactionTime2))
+                    {
+                        if (reactionTime1 > reactionTime2) 
+                        {
+                            
+                            for (int x = 0; x < students.GetLength(1); x++)
+                            {
+                                string temp = students[j, x];
+                                students[j, x] = students[j + 1, x];
+                                students[j + 1, x] = temp;
+                            }
+                        }
+                    }
+                }
+            }
+
+            
+            Console.WriteLine("Leaderboard (Best Reaction Times First):\n");
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (double.TryParse(students[i, 7], out _)) 
+                {
+                    Console.WriteLine($"{i + 1}. {students[i, 0]} {students[i, 1]} - {students[i, 7]} seconds");
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return to the main menu.");
+            Console.ReadKey();
+            mainMenu();
+        }
+
+        static void quizScoreLeaderboard()
+        {
+            banner("Quiz Score Leaderboard");
+
+            for (int i = 0; i < students.GetLength(0) - 1; i++)
+            {
+                for (int j = 0; j < students.GetLength(0) - i - 1; j++)
+                {
+                    if (int.TryParse(students[j, 8], out int score1) && int.TryParse(students[j + 1, 8], out int score2))
+                    {
+                        if (score1 < score2) 
+                        {
+                            for (int x = 0; x < students.GetLength(1); x++)
+                            {
+                                string temp = students[j, x];
+                                students[j, x] = students[j + 1, x];
+                                students[j + 1, x] = temp;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine("Leaderboard (Highest Quiz Scores First):\n");
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (int.TryParse(students[i, 8], out _))
+                {
+                    Console.WriteLine($"{i + 1}. {students[i, 0]} {students[i, 1]} - {students[i, 8]} points");
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return to the main menu.");
+            Console.ReadKey();
+            mainMenu();
+        }
+        static void averageLapsLeaderboard()
+        {
+            banner("Average Laps Leaderboard");
+
+            for (int i = 0; i < students.GetLength(0) - 1; i++)
+            {
+                for (int j = 0; j < students.GetLength(0) - i - 1; j++)
+                {
+                    if (int.TryParse(students[j, 6], out int laps1) && int.TryParse(students[j + 1, 6], out int laps2))
+                    {
+                        if (laps1 < laps2)
+                        {
+                            for (int x = 0; x < students.GetLength(1); x++)
+                            {
+                                string temp = students[j, x];
+                                students[j, x] = students[j + 1, x];
+                                students[j + 1, x] = temp;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine("Leaderboard (Most Laps First):\n");
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (int.TryParse(students[i, 6], out _))
+                {
+                    Console.WriteLine($"{i + 1}. {students[i, 0]} {students[i, 1]} - {students[i, 6]} laps");
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return to the main menu.");
+            Console.ReadKey();
+            mainMenu();
+        }
+
+
+        static void userManagement()
+        {
+            banner("User Management");
+            Console.WriteLine("1. Add a user");
+            Console.WriteLine("2. Remove a user");
+            Console.WriteLine("Please enter the number related to where you would like to go");
+            int usermanagementchoice = Convert.ToInt32(Console.ReadLine());
+            if (usermanagementchoice == 1)
+            {
+                addUser();
+            }
+            else if (usermanagementchoice == 2)
+            {
+                removeUser();
+            }
+            else
+            {
+                Console.WriteLine("You have entered an incorrect value. Press any key to return to main menu");
+                Console.ReadKey();
+                mainMenu();
+            }
+
+        }
+        static void addUser()
+        {
+            banner("Add User");
+            Console.WriteLine("Enter First Name");
+            string fName = Console.ReadLine();
+            Console.WriteLine("Enter Surname");
+            string sName = Console.ReadLine();
+            Console.WriteLine("Enter year in school");
+            string schoolyear = Console.ReadLine();
+            Console.WriteLine("Enter gender");
+            string gender = Console.ReadLine();
+
+            string[,] NewStudents = new string[students.GetLength(0) + 1, numberOfBitsOfInfoStudents];
+
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                for (int j = 0; j < students.GetLength(1); j++)
+                {
+                    NewStudents[i, j] = students[i, j];
+                }
+            }
+
+            NewStudents[NewStudents.GetLength(0) - 1, 0] = fName;
+            NewStudents[NewStudents.GetLength(0) - 1, 1] = sName;
+            NewStudents[NewStudents.GetLength(0) - 1, 2] = schoolyear;
+            NewStudents[NewStudents.GetLength(0) - 1, 3] = gender;
+
+            for (int j = 4; j < numberOfBitsOfInfoStudents; j++)
+            {
+                NewStudents[NewStudents.GetLength(0) - 1, j] = "Not tested";
+            }
+
+            writeToFile(NewStudents);
+        }
+        static void writeToFile(string[,] arrayBeingSent)
+        {
+            using (StreamWriter sw = new StreamWriter(pathstudents))
+            {
+                for (int i = 0; i < arrayBeingSent.GetLength(0); i++)
+                {
+                    StringBuilder line = new StringBuilder();
+                    for (int j = 0; j < arrayBeingSent.GetLength(1); j++)
+                    {
+                        line.Append(arrayBeingSent[i, j]);
+                        if (j < arrayBeingSent.GetLength(1) - 1)
+                        {
+                            line.Append(",");
+                        }
+                    }
+                    sw.WriteLine(line.ToString());
+                }
+            }
+
+            Console.WriteLine("File has been updated. Press any key to exit the program.");
+            Console.ReadKey();
+            readinstudents();
+            Environment.Exit(0);
+        }
+
+
+
+        static void removeUser()
+        {
+            banner("Remove User");
+
+            Console.WriteLine("Enter First Name of the user to remove:");
+            string fNameToRemove = Console.ReadLine();
+            Console.WriteLine("Enter Surname of the user to remove:");
+            string sNameToRemove = Console.ReadLine();
+
+            int userIndex = -1;
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (students[i, 0] == fNameToRemove && students[i, 1] == sNameToRemove)
+                {
+                    userIndex = i;
+                    break;
+                }
+            }
+
+            if (userIndex == -1)
+            {
+                Console.WriteLine("User not found. Press any key to continue.");
+                Console.ReadKey();
+                mainMenu();
+                return;
+            }
+
+            if (students.GetLength(0) == 1)
+            {
+                Console.WriteLine("Cannot remove the only user. Press any key to exit the program.");
+                Console.ReadKey();
+                mainMenu();
+                return;
+            }
+
+            string[,] NewStudents = new string[students.GetLength(0) - 1, numberOfBitsOfInfoStudents];
+
+            int newArrayIndex = 0;
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (i == userIndex)
+                    continue;
+
+                for (int j = 0; j < students.GetLength(1); j++)
+                {
+                    NewStudents[newArrayIndex, j] = students[i, j];
+                }
+                newArrayIndex++;
+            }
+
+            writeToFile(NewStudents);
+
+            Console.WriteLine("User has been removed. Press any key to continue.");
+            Console.ReadKey();
+            mainMenu();
+        }
+
+        static void quiz()
+        {
+            banner("Quiz");
+            Console.WriteLine("Enter your first name:");
+            string firstName = Console.ReadLine();
+
+            Console.WriteLine("Enter your last name:");
+            string lastName = Console.ReadLine();
+
+            int studentIndex = -1;
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (students[i, 0] == firstName && students[i, 1] == lastName)
+                {
+                    studentIndex = i;
+                    break;
+                }
+            }
+
+            if (studentIndex == -1)
+            {
+                Console.WriteLine("Student not found. Press any key to return to the main menu.");
+                Console.ReadKey();
+                mainMenu();
+                return;
+            }
+
+            int score = 0;
+
+            Console.WriteLine("Question 1: What should you do if you see someone drowning?");
+            Console.WriteLine("1. Jump in and save them");
+            Console.WriteLine("2. Call for help and throw something that floats");
+            Console.WriteLine("3. Ignore and walk away");
+            Console.Write("Your answer (1/2/3): ");
+            string answer1 = Console.ReadLine();
+            if (answer1 == "2")
+            {
+                score++;
+            }
+
+            Console.WriteLine("\nQuestion 2: What is the safest place to swim?");
+            Console.WriteLine("1. In a swimming pool with a lifeguard");
+            Console.WriteLine("2. In a lake without supervision");
+            Console.WriteLine("3. In the ocean with no one around");
+            Console.Write("Your answer (1/2/3): ");
+            string answer2 = Console.ReadLine();
+            if (answer2 == "1")
+            {
+                score++;
+            }
+
+            Console.WriteLine("\nQuestion 3: What should you wear when on a boat?");
+            Console.WriteLine("1. A life jacket");
+            Console.WriteLine("2. Regular clothes");
+            Console.WriteLine("3. No need to wear anything special");
+            Console.Write("Your answer (1/2/3): ");
+            string answer3 = Console.ReadLine();
+            if (answer3 == "1")
+            {
+                score++;
+            }
+            Console.WriteLine("\nQuestion 4: How should you help someone struggling in water?");
+            Console.WriteLine("1. Reach for them with a stick or throw a rope");
+            Console.WriteLine("2. Swim out to them immediately");
+            Console.WriteLine("3. Let them tire themselves out first");
+            Console.Write("Your answer (1/2/3): ");
+            string answer4 = Console.ReadLine();
+            if (answer4 == "1")
+            {
+                score++;
+            }
+
+            
+            Console.WriteLine("\nQuestion 5: Why is it important to swim in designated areas?");
+            Console.WriteLine("1. To avoid dangerous underwater currents");
+            Console.WriteLine("2. Because it’s more fun");
+            Console.WriteLine("3. There’s no real difference");
+            Console.Write("Your answer (1/2/3): ");
+            string answer5 = Console.ReadLine();
+            if (answer5 == "1")
+            {
+                score++;
+            }
+                    
+            Console.WriteLine($"\nYou scored {score}/5 in the water safety quiz.");
+
+            students[studentIndex, 8] = score.ToString();
+
+            writeToFile(students);
+
+            Console.WriteLine("Your score has been recorded. Press any key to return to the main menu.");
+            Console.ReadKey();
+            mainMenu();
+        }
+
+        static void exitApplication()
+        {
+            banner("Exit Application");
+            Console.WriteLine("Please enter confirm to continue anything else will bring you back to the main menu");
+            string exitConfirm = Console.ReadLine();
+            if (exitConfirm == "confirm")
+            {
+                Environment.Exit(0);
+            }
+
+            else
+            {
+                Console.WriteLine("You have selected the wrong option. Press any key to return to main menu!");
+                Console.ReadKey();
+                mainMenu();
+            }
+        }
+        static void pupilList()
+        {
+            banner("Student List");
+
+            
+            Console.WriteLine("List of Pupils:");
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                Console.WriteLine($"{students[i, 0]} {students[i, 1]}");
+            }
+
+            Console.WriteLine("\nEnter the full name of the pupil (First Last):");
+            string fullName = Console.ReadLine();
+            string[] nameParts = fullName.Split(' ');
+
+            if (nameParts.Length != 2)
+            {
+                Console.WriteLine("Please enter the full name in the format 'First Last'. Press any key to return to the main menu.");
+                Console.ReadKey();
+                mainMenu();
+                return;
+            }
+
+            string firstName = nameParts[0];
+            string lastName = nameParts[1];
+
+            int studentIndex = -1;
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (students[i, 0] == firstName && students[i, 1] == lastName)
+                {
+                    studentIndex = i;
+                    break;
+                }
+            }
+
+            if (studentIndex == -1)
+            {
+                Console.WriteLine("Student not found. Press any key to return to the main menu.");
+                Console.ReadKey();
+                mainMenu();
+                return;
+            }
+
+            Console.Clear();
+            banner("Student Data");
+            Console.WriteLine("First Name: " + students[studentIndex, 0]);
+            Console.WriteLine("Last Name: " + students[studentIndex, 1]);
+            Console.WriteLine("Year: " + students[studentIndex, 2]);
+            Console.WriteLine("Gender: " + students[studentIndex, 3]);
+            Console.WriteLine("Attempt 1 Laps: " + students[studentIndex, 4]);
+            Console.WriteLine("Attempt 2 Laps: " + students[studentIndex, 5]);
+            Console.WriteLine("Average Laps: " + students[studentIndex, 6]);
+            Console.WriteLine("Reaction Test Score: " + students[studentIndex, 7]);
+            Console.WriteLine("Quiz Score: " + students[studentIndex, 8]);
+
+            Console.WriteLine("\nPress any key to return to the main menu.");
+            Console.ReadKey();
+            mainMenu();
+        }
+
+
+        static void swimmingGroups()
+        {
+            banner("Swimming Groups");
+
+            string[] advancedGroup = new string[students.GetLength(0)];
+            string[] intermediateGroup = new string[students.GetLength(0)];
+            string[] beginnerGroup = new string[students.GetLength(0)];
+
+            int advancedCount = 0;
+            int intermediateCount = 0;
+            int beginnerCount = 0;
+
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (int.TryParse(students[i, 6], out int avgLaps))
+                {
+                    if (avgLaps > 15)
+                    {
+                        advancedGroup[advancedCount] = $"{students[i, 0]} {students[i, 1]}";
+                        advancedCount++;
+                    }
+                    else if (avgLaps >= 10 && avgLaps <= 15)
+                    {
+                        intermediateGroup[intermediateCount] = $"{students[i, 0]} {students[i, 1]}";
+                        intermediateCount++;
+                    }
+                    else
+                    {
+                        beginnerGroup[beginnerCount] = $"{students[i, 0]} {students[i, 1]}";
+                        beginnerCount++;
+                    }
+                }
+            }
+
+            Console.Clear();
+            banner("Swimming Groups");
+
+            Console.WriteLine("Advanced Group:");
+            for (int i = 0; i < advancedCount; i++)
+            {
+                Console.WriteLine(advancedGroup[i]);
+            }
+
+            Console.WriteLine("\nIntermediate Group:");
+            for (int i = 0; i < intermediateCount; i++)
+            {
+                Console.WriteLine(intermediateGroup[i]);
+            }
+
+            Console.WriteLine("\nBeginner Group:");
+            for (int i = 0; i < beginnerCount; i++)
+            {
+                Console.WriteLine(beginnerGroup[i]);
+            }
+
+            Console.WriteLine("\nPress any key to return to the main menu.");
+            Console.ReadKey();
+            mainMenu();
+        }
+
+        static void averageLengths()
+        {
+            banner("Average Lengths");
+            Console.WriteLine("Enter student's first name:");
+            string firstName = Console.ReadLine();
+
+            Console.WriteLine("Enter student's last name:");
+            string lastName = Console.ReadLine();
+
+            int studentIndex = -1;
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (students[i, 0] == firstName && students[i, 1] == lastName)
+                {
+                    studentIndex = i;
+                    break;
+                }
+            }
+
+            if (studentIndex == -1)
+            {
+                Console.WriteLine("Student not found. Press any key to return to the main menu.");
+                Console.ReadKey();
+                mainMenu();
+                return;
+            }
+            Console.WriteLine("Please enter how many laps the pupil swam in their first attempt");
+            int laps1 = Convert.ToInt16(Console.ReadLine());
+            Console.WriteLine("Please enter how many laps the pupil swam in their second attempt");
+            int laps2 = Convert.ToInt16(Console.ReadLine());
+            int totallaps = laps1 + laps2;
+            int avglaps = totallaps / 2;
+            Console.WriteLine("{0} {1}'s average amount of laps is {2}",firstName,lastName,avglaps);
+            students[studentIndex, 6] = avglaps.ToString();
+            students[studentIndex, 5] = laps2.ToString();
+            students[studentIndex, 4] = laps1.ToString();
+
+
+            writeToFile(students);
+            
+
+        }
+        static void reactionTest()
+        {
+            Console.Clear();
+            Console.WriteLine("Enter your first name:");
+            string firstName = Console.ReadLine();
+
+            Console.WriteLine("Enter your last name:");
+            string lastName = Console.ReadLine();
+
+           
+            int studentIndex = -1;
+            for (int i = 0; i < students.GetLength(0); i++)
+            {
+                if (students[i, 0] == firstName && students[i, 1] == lastName)
+                {
+                    studentIndex = i;
+                    break;
+                }
+            }
+
+            if (studentIndex == -1)
+            {
+                Console.WriteLine("Student not found. Press any key to return to the main menu.");
+                Console.ReadKey();
+                mainMenu();
+                return;
+            }
+
+            Random random = new Random();
+            Stopwatch stopwatch = new Stopwatch();
+            Console.WriteLine("Welcome to the reaction test");
+            Console.WriteLine("Press enter when you are ready");
+            Console.ReadLine();
+
+            int randomDelay = random.Next(2000, 5000);
+            Console.WriteLine("Get ready...");
+            Thread.Sleep(randomDelay);
+            Console.WriteLine("Press any key NOW!");
+
+            stopwatch.Start();
+            Console.ReadKey(true);
+            stopwatch.Stop();
+
+            TimeSpan reactionTime = stopwatch.Elapsed;
+            double reactionTimeInMilliseconds = reactionTime.TotalMilliseconds;
+
+            if (reactionTimeInMilliseconds > 500) 
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Your reaction time is {reactionTimeInMilliseconds} ms - Below Average");
+            }
+            else if (reactionTimeInMilliseconds > 300) 
+            {
+                Console.ForegroundColor = ConsoleColor.DarkYellow; 
+                Console.WriteLine($"Your reaction time is {reactionTimeInMilliseconds} ms - Average");
+            }
+            else 
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Your reaction time is {reactionTimeInMilliseconds} ms - Good");
+            }
+
+            Console.ResetColor();
+
+            students[studentIndex, 7] = reactionTimeInMilliseconds.ToString();
+
+            writeToFile(students);
+            Console.WriteLine("Your score has been recorded.");
+
+            Console.WriteLine("Would you like to play again? (yes/no)");
+            string playReactionTestAgain = Console.ReadLine();
+            if (playReactionTestAgain.ToLower() == "yes")
+            {
+                Console.Clear();
+                reactionTest();
+            }
+            else
+            {
+                Console.Clear();
+                mainMenu();
+            }
+        }
+
+
+
+        static void banner(string name)
+        {
+            Console.Clear();
+            Console.WriteLine("Welcome to Bayside High School Admin Page");
+            Console.WriteLine($"You are here: {name}");
+        }
+    }
+}
